@@ -1,0 +1,58 @@
+[
+  {
+    "id": 101,
+    "title": "Introduce Yourself on Campus",
+    "difficulty": "Easy",
+    "desc": "Meet a Korean classmate, introduce your name and exchange student status, and ask about their major.",
+    "target_role": "Friendly Korean University Student"
+  },
+  {
+    "id": 102,
+    "title": "Order at a Cafe",
+    "difficulty": "Easy",
+    "desc": "Order a drink in Korean, choose hot or iced, and confirm the price.",
+    "target_role": "Helpful Cafe Barista"
+  },
+  {
+    "id": 103,
+    "title": "Ask for Campus Directions",
+    "difficulty": "Easy",
+    "desc": "Ask where the international student office is and confirm how to get there.",
+    "target_role": "Campus Information Assistant"
+  },
+  {
+    "id": 104,
+    "title": "Buy a Transit Ticket",
+    "difficulty": "Medium",
+    "desc": "Ask how to buy or recharge a transit card and confirm the fare.",
+    "target_role": "Station Staff Member"
+  },
+  {
+    "id": 105,
+    "title": "Shop for Essentials",
+    "difficulty": "Medium",
+    "desc": "Ask where to find an item, check its price, and pay at a convenience store.",
+    "target_role": "Convenience Store Clerk"
+  },
+  {
+    "id": 106,
+    "title": "Ask About Class Schedule",
+    "difficulty": "Medium",
+    "desc": "Ask a classmate when and where the next class meets and confirm the details.",
+    "target_role": "Korean Classmate"
+  },
+  {
+    "id": 107,
+    "title": "Explain a Food Allergy",
+    "difficulty": "Hard",
+    "desc": "Tell restaurant staff about a food allergy, ask about ingredients, and confirm a safe option.",
+    "target_role": "Restaurant Server"
+  },
+  {
+    "id": 108,
+    "title": "Request Dormitory Assistance",
+    "difficulty": "Hard",
+    "desc": "Explain a dormitory problem, request assistance, and confirm next steps.",
+    "target_role": "Dormitory Front Desk Staff"
+  }
+]
