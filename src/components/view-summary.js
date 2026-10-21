@@ -24,6 +24,14 @@ class ViewSummary extends HTMLElement {
     this._mode = value;
   }
 
+  set language(value) {
+    this._language = value;
+  }
+
+  set mission(value) {
+    this._mission = value;
+  }
+
   set result(value) {
     this._result = value;
     this.render();
@@ -74,6 +82,27 @@ class ViewSummary extends HTMLElement {
             : "No specific learning feedback was returned for this session."}
         </p>`;
 
+    const language = this.escapeHTML(this._language || "Not specified");
+
+    const mode = this._mode === "immergo_teacher"
+      ? "Teacher Mode"
+      : this._mode === "immergo_immersive"
+        ? "Immersive Mode"
+        : "Not specified";
+
+    const scenario = this.escapeHTML(
+      this._mission?.title || "Not specified"
+    );
+
+    const sessionDetails = `
+      <div class="card" style="text-align: left; margin: 20px 0; padding: 20px;">
+        <h3 style="margin: 0 0 14px;">Practice Details</h3>
+        <p><strong>Language:</strong> ${language}</p>
+        <p><strong>Mode:</strong> ${mode}</p>
+        <p><strong>Scenario:</strong> ${scenario}</p>
+      </div>
+    `;
+
     const scoreHTML = showScore
       ? `<div class="card" style="text-align: left; margin-top: 20px;">
           <h3>Speaking Performance</h3>
@@ -100,6 +129,7 @@ class ViewSummary extends HTMLElement {
           <h2 style="margin: 16px 0; color: var(--color-text-main);">
             ${title}
           </h2>
+          ${sessionDetails}
 
           <p style="
             max-width: 560px;
