@@ -20,6 +20,10 @@ class ViewSummary extends HTMLElement {
     this._result = null;
   }
 
+  set mode(value) {
+    this._mode = value;
+  }
+
   set result(value) {
     this._result = value;
     this.render();
@@ -29,202 +33,147 @@ class ViewSummary extends HTMLElement {
     this.render();
   }
 
+  escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
   render() {
     if (!this._result) return;
 
-    if (this._result.incomplete) {
-      this.innerHTML = `
-          <div class="container text-center">
-            <h2 style="margin-top: var(--spacing-xl); color: var(--color-text-sub);">Mission Ended</h2>
-            
-            <div style="margin: var(--spacing-xxl) 0; opacity: 0.7;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                <p style="margin-top: var(--spacing-md); font-size: 1.1rem;">
-                    You didn't complete the mission objectives.<br>
-                    No score awarded this time.
-                </p>
-            </div>
+    const result = this._result;
+    const incomplete = result.incomplete === true;
 
-            <div style="flex: 1;"></div>
+    const notes = Array.isArray(result.notes)
+      ? result.notes.filter(note => typeof note === "string" && note.trim())
+      : [];
 
-            <div style="
-                margin-top: var(--spacing-sm);
-                margin-bottom: var(--spacing-xl);
-                padding: var(--spacing-xl);
-                background: linear-gradient(135deg, rgba(var(--color-accent-primary-rgb), 0.1) 0%, rgba(var(--color-accent-secondary-rgb), 0.1) 100%);
-                border-radius: var(--radius-lg);
-                text-align: center;
-                border: 1px dashed var(--color-accent-primary);
-            ">
-                <h3 style="margin-bottom: var(--spacing-sm); color: var(--color-accent-primary);"> Build Your Own Version </h3>
-                <p style="margin-bottom: var(--spacing-lg); opacity: 0.8; line-height: 1.5;">
-                    Add more missions or features <br>
-                </p>
-                
-                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;">
-                    <a href="https://github.com/ZackAkil/immersive-language-learning-with-live-api" target="_blank" style="
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 12px;
-                        background: var(--color-surface);
-                        color: var(--color-text-main);
-                        padding: 14px 28px;
-                        border: 2px dashed var(--color-accent-primary);
-                        border-radius: var(--radius-md);
-                        text-decoration: none;
-                        font-weight: 800;
-                        box-shadow: var(--shadow-sm);
-                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                        backdrop-filter: blur(10px);
-                        font-size: 1.1rem;
-                    " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--shadow-md)'; this.style.background='var(--color-bg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)'; this.style.background='var(--color-surface)';" >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                        Fork on GitHub
-                    </a>
-                </div>
-            </div>
-            <button id="home-btn" class="btn-primary">Back to mission list</button>
-          </div>
-        `;
-    } else {
-      this.innerHTML = `
-          <div class="container text-center">
-            <h2 style="margin-top: var(--spacing-xl); color: var(--color-accent-secondary);">Mission Accomplished!</h2>
-            
-            <div style="margin: var(--spacing-lg) 0;">
-              ${this._result.score !== "0" && this._result.score !== 0 ? this._renderScore(this._result.score) : '<p style="font-size: 1.2rem; opacity: 0.8;">Practice session complete!</p>'}
-            </div>
+    const score = result.score == null ? null : String(result.score);
+    const showScore =
+      !incomplete &&
+      this._mode !== "immergo_teacher" &&
+      ["1", "2", "3"].includes(score);
 
-            <div class="card" style="text-align: left;">
-              <h4 style="border-bottom: 2px solid var(--color-bg); padding-bottom: var(--spacing-sm);">Feedback</h4>
-              <ul style="padding-left: var(--spacing-lg); color: var(--color-text-sub);">
-                ${this._result.notes.map(note => `<li>${note}</li>`).join('')}
-              </ul>
-            </div>
+    const title = incomplete ? "Practice Ended" : "Mission Completed";
+    const subtitle = incomplete
+      ? "Your practice session has ended. The mission objectives have not been confirmed as complete."
+      : "You've completed your speaking mission. Review your learning feedback below.";
 
-            <div style="flex: 1;"></div>
+    const feedbackHTML = notes.length
+      ? `<ol style="padding-left: 24px; line-height: 1.9; margin: 12px 0 0;">
+          ${notes.map(note => `<li>${this.escapeHTML(note)}</li>`).join("")}
+        </ol>`
+      : `<p style="color: var(--color-text-sub); line-height: 1.7;">
+          ${incomplete
+            ? "No AI learning feedback is available for this unfinished session."
+            : "No specific learning feedback was returned for this session."}
+        </p>`;
 
-            <div style="
-                margin-top: var(--spacing-sm);
-                margin-bottom: var(--spacing-xl);
-                padding: var(--spacing-xl);
-                background: linear-gradient(135deg, rgba(var(--color-accent-primary-rgb), 0.1) 0%, rgba(var(--color-accent-secondary-rgb), 0.1) 100%);
-                border-radius: var(--radius-lg);
-                text-align: center;
-                border: 1px dashed var(--color-accent-primary);
-            ">
-                <h3 style="margin-bottom: var(--spacing-sm); color: var(--color-accent-primary);"> Build Your Own Version </h3>
-                <p style="margin-bottom: var(--spacing-lg); opacity: 0.8; line-height: 1.5;">
-                    Add more missions or features <br>
-                </p>
-                
-                <a href="https://github.com/ZackAkil/immersive-language-learning-with-live-api" target="_blank" style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 12px;
-                    background: var(--color-surface);
-                    color: var(--color-text-main);
-                    padding: 14px 28px;
-                    border: 2px dashed var(--color-accent-primary);
-                    border-radius: var(--radius-md);
-                    text-decoration: none;
-                    font-weight: 800;
-                    box-shadow: var(--shadow-sm);
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    backdrop-filter: blur(10px);
-                    font-size: 1.1rem;
-                " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='var(--shadow-md)'; this.style.background='var(--color-bg)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-sm)'; this.style.background='var(--color-surface)';" >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    Fork on GitHub
-                </a>
-            </div>
+    const scoreHTML = showScore
+      ? `<div class="card" style="text-align: left; margin-top: 20px;">
+          <h3>Speaking Performance</h3>
+          ${this._renderScore(score)}
+        </div>`
+      : "";
 
-            <button id="home-btn" class="btn-primary">Back to mission list</button>
-          </div>
-        `;
-    }
+    this.innerHTML = `
+      <div class="container" style="
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 36px 20px 56px;
+        text-align: left;
+      ">
+        <div style="text-align: center; margin-bottom: 28px;">
+          <p style="
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--color-accent-primary);
+            font-weight: 800;
+            font-size: 0.85rem;
+          ">CONTEXTA · LEARNING SUMMARY</p>
 
-    // Add common button style if not in CSS, or duplicate online styles for now to be safe as I see inline styles used before
-    const btn = this.querySelector('#home-btn');
-    btn.style.cssText = `
-        background: var(--color-accent-primary);
-        color: white;
-        padding: 20px var(--spacing-xl);
-        font-size: 1.25rem;
-        font-weight: 800;
-        border-radius: var(--radius-lg);
-        width: 100%;
-        margin-bottom: var(--spacing-xxl);
-        box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
-        border: 1px solid rgba(255,255,255,0.1);
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+          <h2 style="margin: 16px 0; color: var(--color-text-main);">
+            ${title}
+          </h2>
+
+          <p style="
+            max-width: 560px;
+            margin: 0 auto;
+            color: var(--color-text-sub);
+            line-height: 1.7;
+          ">${subtitle}</p>
+        </div>
+
+        <div class="card" style="text-align: left; padding: 24px;">
+          <h3 style="margin-top: 0;">Today's Learning Takeaways</h3>
+          ${feedbackHTML}
+        </div>
+
+        ${scoreHTML}
+
+        <div style="
+          margin-top: 24px;
+          padding: 18px 20px;
+          border: 1px solid var(--color-accent-primary);
+          border-radius: var(--radius-lg);
+          color: var(--color-text-sub);
+          line-height: 1.7;
+        ">
+          <strong style="color: var(--color-text-main);">Keep Practicing</strong>
+          <p style="margin: 8px 0 0;">
+            Regular short conversations can help you build confidence.
+            Choose another scenario whenever you're ready.
+          </p>
+        </div>
+
+        <button id="home-btn" class="btn-primary" style="
+          display: block;
+          width: 100%;
+          margin-top: 28px;
+          padding: 20px;
+          border-radius: var(--radius-lg);
+          background: var(--color-accent-primary);
+          color: white;
+          font-size: 1.1rem;
+          font-weight: 800;
+          cursor: pointer;
+        ">Back to Mission List</button>
+      </div>
     `;
 
-    btn.onmouseover = () => {
-      btn.style.transform = 'translateY(-4px) scale(1.01)';
-      btn.style.boxShadow = '0 15px 30px -10px rgba(163, 177, 138, 0.4)';
-      btn.style.filter = 'brightness(1.1)';
-    };
-    btn.onmouseout = () => {
-      btn.style.transform = 'translateY(0) scale(1)';
-      btn.style.boxShadow = '0 10px 20px -5px rgba(0,0,0,0.3)';
-      btn.style.filter = 'brightness(1)';
-    };
-
-    btn.addEventListener('click', () => {
-      this.dispatchEvent(new CustomEvent('navigate', {
+    this.querySelector("#home-btn").addEventListener("click", () => {
+      this.dispatchEvent(new CustomEvent("navigate", {
         bubbles: true,
-        detail: { view: 'missions', mission: null, result: null }
+        detail: { view: "missions", mission: null, result: null }
       }));
     });
   }
-  _renderScore(score) {
-    const levels = [
-      { id: '1', title: 'Tiro', stars: 1 },
-      { id: '2', title: 'Proficiens', stars: 2 },
-      { id: '3', title: 'Peritus', stars: 3 }
-    ];
 
-    const currentLevel = levels.find(l => l.id === score.toString()) || levels[0];
-    const descriptions = {
-      '1': 'You needed a lot of help',
-      '2': 'A little help',
-      '3': 'No help, fluid'
+  _renderScore(score) {
+    const levels = {
+      "1": { title: "Tiro", description: "Needed frequent assistance" },
+      "2": { title: "Proficiens", description: "Communicated with some assistance" },
+      "3": { title: "Peritus", description: "Communicated fluently" }
     };
 
-    const starIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+    const level = levels[score];
 
-    const scaleHtml = levels.map(level => {
-      const isCurrent = level.id === score.toString();
-      const opacity = isCurrent ? '1' : '0.3';
-      const color = isCurrent ? 'var(--color-accent-primary)' : 'var(--color-text-main)';
-      const weight = isCurrent ? 'bold' : 'normal';
-      const fontSize = isCurrent ? '1.1rem' : '0.9rem';
-
-      // Generate stars
-      let starsHtml = '';
-      for (let i = 0; i < level.stars; i++) starsHtml += starIcon;
-
-      return `
-        <div style="flex: 1; opacity: ${opacity}; color: ${color}; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: center; gap: 4px;">
-           <div style="display: flex; gap: 2px; color: ${isCurrent ? 'var(--color-accent-secondary)' : 'currentColor'}">
-             ${starsHtml}
-           </div>
-           <span style="font-family: var(--font-heading); font-weight: ${weight}; font-size: ${fontSize};">${level.title}</span>
-        </div>
-      `;
-    }).join('');
+    if (!level) return "";
 
     return `
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--spacing-md); height: 80px;">
-        ${scaleHtml}
-      </div>
-      <p style="font-size: 1rem; opacity: 0.8; font-style: italic; margin-top: var(--spacing-md);">(${descriptions[score.toString()] || ''})</p>
+      <p style="font-size: 1.3rem; font-weight: 800; margin: 12px 0 6px;">
+        ${level.title}
+      </p>
+      <p style="color: var(--color-text-sub); margin: 0;">
+        ${level.description}
+      </p>
     `;
   }
 }
 
-customElements.define('view-summary', ViewSummary);
+customElements.define("view-summary", ViewSummary);

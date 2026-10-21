@@ -267,6 +267,7 @@ class AppRoot extends HTMLElement {
                 break;
             case 'summary':
                 currentView = document.createElement('view-summary');
+                currentView.mode = this.state.selectedMode;
                 currentView.result = this.state.sessionResult;
                 break;
             default:
