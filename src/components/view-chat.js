@@ -362,14 +362,14 @@ class ViewChat extends HTMLElement {
     // Define Mission Complete Tool
     const completeMissionTool = new FunctionCallDefinition(
       "complete_mission",
-      "Call this tool when the user has successfully completed the mission objective. Provide a score and feedback.",
+      "Call this tool only when the learner has completed the mission objective. In Teacher Mode use score 0 (unrated); in Immersive Mode use score 1-3. Always provide three learning feedback points.",
       {
         type: "OBJECT",
         properties: {
           score: {
             type: "INTEGER",
             description:
-              "Rating from 1 to 3 based on performance: 1 (Tiro) = Struggled, used frequent English, or needed many hints. 2 (Proficiens) = Good, intelligible but with errors or hesitation. 3 (Peritus) = Excellent, fluent, native-like, no help needed.",
+              "Use 0 in Teacher Mode (practice only, no rating). In Immersive Mode use 1 (Tiro) = needs frequent help, 2 (Proficiens) = communicates with some assistance, or 3 (Peritus) = communicates fluently and independently.",
           },
           feedback_pointers: {
             type: "ARRAY",
@@ -395,7 +395,7 @@ class ViewChat extends HTMLElement {
 
       // Map score to level
       const levels = { 1: "Tiro", 2: "Proficiens", 3: "Peritus" };
-      const level = levels[args.score] || "Proficiens";
+      const level = this._mode === "immergo_teacher" ? null : (levels[args.score] || null);
 
       console.log(
         "⏳ [App] Waiting for final audio to play before ending session..."
@@ -410,7 +410,9 @@ class ViewChat extends HTMLElement {
 
         // Navigate to summary
         const result = {
-          score: args.score.toString(),
+          score: this._mode === "immergo_teacher"
+            ? null
+            : (args.score == null ? null : String(args.score)),
           level: level,
           notes: args.feedback_pointers,
         };
